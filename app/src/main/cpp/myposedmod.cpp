@@ -155,6 +155,8 @@ NativeOnModuleLoaded native_init(const NativeAPIEntries *entries) {
 
         hook_func(SSL_read_conscrypt, (void *) fake_SSL_read, (void **) &backup_SSL_read);
         hook_func(SSL_write_conscrypt, (void *) fake_SSL_write, (void **) &backup_SSL_write);
+
+        dlclose(libssl_handle);
     } else {
         __android_log_print(ANDROID_LOG_ERROR, TAG, "\n[!] hook libssl.so failed");
     }
