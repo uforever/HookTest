@@ -35,7 +35,6 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
-
 public class HookTest implements IXposedHookLoadPackage {
 
     private static final String TAG = "HookTest";
@@ -54,12 +53,15 @@ public class HookTest implements IXposedHookLoadPackage {
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         // 过滤不必要的应用
+        if (lpparam.packageName.startsWith("com.miui.")) return;
         if (lpparam.packageName.startsWith("com.zhang3.")) return;
+        Log.d(TAG, "[+] hook package: " + lpparam.packageName);
 
         try {
             System.loadLibrary("myposedmod");
+            // Log.d(TAG, "- load native hook library success");
         } catch (Throwable e) {
-            Log.e(TAG, "load Native hook Library failed", e);
+            Log.e(TAG, "- load native hook library failed", e);
         }
 
         // 执行Hook
@@ -79,6 +81,47 @@ public class HookTest implements IXposedHookLoadPackage {
                 classLoader = context.getClassLoader();
             }
         });
+
+
+        // 通过反射hook
+
+        /*
+        Class<?> nativeCrypto = XposedHelpers.findClass("com.android.org.conscrypt.NativeCrypto", classLoader);
+
+        XposedBridge.hookAllMethods(nativeCrypto, "SSL_write", new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                super.afterHookedMethod(param);
+                byte[] buffer = (byte[]) param.args[4];
+                int offset = (int) param.args[5];
+                int length = (int) param.args[6];
+                String bufferBase64 = Base64.encodeToString(buffer, Base64.NO_WRAP);
+                Log.i(TAG, "\n[*] conscrypt.NativeCrypto.SSL_write() onLeave");
+                Log.i(TAG, "- buffer(base64): " + bufferBase64);
+                Log.i(TAG, "- offset: " + offset);
+                Log.i(TAG, "- length: " + length);
+                Log.d(TAG, "- buffer(raw): ");
+                Log.d(TAG, new String(buffer, offset, length));
+            }
+        });
+
+        XposedBridge.hookAllMethods(nativeCrypto, "SSL_read", new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                super.afterHookedMethod(param);
+                byte[] buffer = (byte[]) param.args[4];
+                int offset = (int) param.args[5];
+                int length = (int) param.args[6];
+                String bufferBase64 = Base64.encodeToString(buffer, Base64.NO_WRAP);
+                Log.i(TAG, "\n[*] conscrypt.NativeCrypto.SSL_read() onLeave");
+                Log.i(TAG, "- buffer(base64): " + bufferBase64);
+                Log.i(TAG, "- offset: " + offset);
+                Log.i(TAG, "- length: " + length);
+                Log.d(TAG, "- buffer(raw): ");
+                Log.d(TAG, new String(buffer, offset, length));
+            }
+        });
+        */
 
         // Class<?> keyGenerator = XposedHelpers.findClass("javax.crypto.KeyGenerator", classLoader);
 

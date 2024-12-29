@@ -1,7 +1,6 @@
 #ifndef MYPOSEDMOD_HOOKNATIVE_H
 #define MYPOSEDMOD_HOOKNATIVE_H
 
-
 #include <stdint.h>
 
 typedef int (*HookFunType)(void *func, void *replace, void **backup);
